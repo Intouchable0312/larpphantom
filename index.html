@@ -27,7 +27,9 @@ body {
 }
 #ptr-indicator.showing { height:54px; }
 
-/* Apple-style spinner */
+/* Apple-style spinner — 8 barres, caché par défaut */
+#ptr-spinner-wrap { display:none; align-items:center; justify-content:center; padding:10px 0 6px; }
+#ptr-spinner-wrap.active { display:flex; }
 .apple-spinner { width:26px; height:26px; position:relative; }
 .apple-spinner span {
   position:absolute; width:2.8px; height:7.5px;
@@ -35,18 +37,14 @@ body {
   left:calc(50% - 1.4px); top:1px;
   transform-origin:50% 12px; opacity:0.15;
 }
-.apple-spinner span:nth-child(1)  { transform:rotate(0deg);   animation:apf 1.1s -1.008s linear infinite; }
-.apple-spinner span:nth-child(2)  { transform:rotate(30deg);  animation:apf 1.1s -0.917s linear infinite; }
-.apple-spinner span:nth-child(3)  { transform:rotate(60deg);  animation:apf 1.1s -0.825s linear infinite; }
-.apple-spinner span:nth-child(4)  { transform:rotate(90deg);  animation:apf 1.1s -0.733s linear infinite; }
-.apple-spinner span:nth-child(5)  { transform:rotate(120deg); animation:apf 1.1s -0.642s linear infinite; }
-.apple-spinner span:nth-child(6)  { transform:rotate(150deg); animation:apf 1.1s -0.550s linear infinite; }
-.apple-spinner span:nth-child(7)  { transform:rotate(180deg); animation:apf 1.1s -0.458s linear infinite; }
-.apple-spinner span:nth-child(8)  { transform:rotate(210deg); animation:apf 1.1s -0.367s linear infinite; }
-.apple-spinner span:nth-child(9)  { transform:rotate(240deg); animation:apf 1.1s -0.275s linear infinite; }
-.apple-spinner span:nth-child(10) { transform:rotate(270deg); animation:apf 1.1s -0.183s linear infinite; }
-.apple-spinner span:nth-child(11) { transform:rotate(300deg); animation:apf 1.1s -0.092s linear infinite; }
-.apple-spinner span:nth-child(12) { transform:rotate(330deg); animation:apf 1.1s  0.000s linear infinite; }
+.apple-spinner span:nth-child(1) { transform:rotate(0deg);   animation:apf 1s -0.875s linear infinite; }
+.apple-spinner span:nth-child(2) { transform:rotate(45deg);  animation:apf 1s -0.750s linear infinite; }
+.apple-spinner span:nth-child(3) { transform:rotate(90deg);  animation:apf 1s -0.625s linear infinite; }
+.apple-spinner span:nth-child(4) { transform:rotate(135deg); animation:apf 1s -0.500s linear infinite; }
+.apple-spinner span:nth-child(5) { transform:rotate(180deg); animation:apf 1s -0.375s linear infinite; }
+.apple-spinner span:nth-child(6) { transform:rotate(225deg); animation:apf 1s -0.250s linear infinite; }
+.apple-spinner span:nth-child(7) { transform:rotate(270deg); animation:apf 1s -0.125s linear infinite; }
+.apple-spinner span:nth-child(8) { transform:rotate(315deg); animation:apf 1s  0.000s linear infinite; }
 @keyframes apf { 0% { opacity:1; } 100% { opacity:0.15; } }
 
 /* ── MAIN WALLET VIEW ── */
@@ -95,8 +93,7 @@ body {
 .token-item:active { background:#252528; }
 .tok-logo { width:44px; height:44px; border-radius:50%; flex-shrink:0; position:relative; }
 .tok-logo img { width:44px; height:44px; border-radius:50%; object-fit:cover; display:block; }
-/* Gear badge — no ETH badge anymore */
-.gear-badge { position:absolute; bottom:-2px; right:-2px; width:19px; height:19px; }
+/* Petal spinner animation — unused, kept for safety */
 .tok-info { flex:1; min-width:0; }
 .tok-name { font-size:15px; font-weight:600; }
 .tok-bal { font-size:13px; color:var(--sub); margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -185,11 +182,6 @@ canvas#tdChart { width:100%; height:180px; display:block; }
 
 <!-- Pull-to-refresh: purely visual, no reload -->
 <div id="ptr-indicator">
-  <div class="apple-spinner">
-    <span></span><span></span><span></span><span></span>
-    <span></span><span></span><span></span><span></span>
-    <span></span><span></span><span></span><span></span>
-  </div>
 </div>
 
 <div class="header">
@@ -205,6 +197,14 @@ canvas#tdChart { width:100%; height:180px; display:block; }
     <div class="hico" onclick="openModal('search-modal')">
       <svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L20 20"/></svg>
     </div>
+  </div>
+</div>
+
+<!-- Spinner entre username et balance — visible uniquement au pull-to-refresh -->
+<div id="ptr-spinner-wrap">
+  <div class="apple-spinner">
+    <span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span>
   </div>
 </div>
 
@@ -328,7 +328,7 @@ canvas#tdChart { width:100%; height:180px; display:block; }
       <div class="td-logo"><img id="td-logo-img" src="" alt=""></div>
       <div class="td-token-name">
         <span id="td-tok-name">—</span>
-        <svg viewBox="0 0 16 16" width="14" height="14"><circle cx="8" cy="8" r="8" fill="#4a9eff"/><path d="M5 8l2 2 4-4" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span id="td-verified-badge"></span>
       </div>
       <div class="td-people"><span class="td-online"></span> <span id="td-people-count">—</span> personnes ici</div>
     </div>
@@ -541,13 +541,22 @@ canvas#tdChart { width:100%; height:180px; display:block; }
 <!--  JAVASCRIPT                                        -->
 <!-- ══════════════════════════════════════════════════ -->
 <script>
-// ── GEAR BADGE SVG ────────────────────────────────────────────────────────────
-// Gear shape with checkmark, replaces the ETH badge completely
-function gearBadgeSVG() {
-  return `<svg class="gear-badge" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-    <path fill="#4a9eff" d="M17.14 10.94c.04-.3.06-.61.06-.94s-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.62l-1.92-3.32a.49.49 0 00-.6-.21l-2.39.96a6.97 6.97 0 00-1.62-.94l-.36-2.54A.48.48 0 0012 .5H8a.48.48 0 00-.48.41l-.36 2.54a7.3 7.3 0 00-1.62.94l-2.39-.96a.48.48 0 00-.6.21L.63 6.96a.47.47 0 00.12.62l2.03 1.58A7.5 7.5 0 002.71 10c0 .32.02.64.07.94L.75 12.52a.47.47 0 00-.12.62l1.92 3.32c.12.22.38.3.6.21l2.39-.96c.5.36 1.04.67 1.62.94l.36 2.54c.07.26.3.45.57.45h3.84a.48.48 0 00.48-.41l.36-2.54c.58-.27 1.12-.57 1.62-.94l2.39.96c.23.09.49 0 .6-.21l1.92-3.32a.47.47 0 00-.12-.62l-2.04-1.63z"/>
-    <circle fill="#3080e8" cx="10" cy="10" r="3.2"/>
-    <path d="M8.4 10l1.1 1.1 2.1-2.1" stroke="white" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+// ── VERIFIED BADGE SVG (8 pointes symétriques, violet accent + coche blanche) ─
+function verifiedBadgeHTML(size=15) {
+  // Génère un badge 8 pointes parfaitement symétrique
+  const cx=50, cy=50, r1=48, r2=40, points=14;
+  let d='';
+  for(let i=0;i<points*2;i++){
+    const angle = (i*Math.PI/points) - Math.PI/2;
+    const r = i%2===0 ? r1 : r2;
+    const x = cx + r*Math.cos(angle);
+    const y = cy + r*Math.sin(angle);
+    d += (i===0?'M':'L') + x.toFixed(2)+' '+y.toFixed(2)+' ';
+  }
+  d+='Z';
+  return `<svg width="${size}" height="${size}" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="display:inline-block;vertical-align:middle;margin-left:4px;flex-shrink:0;">
+    <path fill="#ab9ff2" d="${d}"/>
+    <path d="M33 51 l12 12 23-25" stroke="white" stroke-width="9" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
   </svg>`;
 }
 
@@ -658,10 +667,9 @@ function renderList() {
       <div class="tok-logo">
         <img src="${p.img}" alt="${p.name}" loading="lazy"
              onerror="this.outerHTML='<div style=width:44px;height:44px;border-radius:50%;background:#333;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:white>${p.sym[0]}</div>'">
-        ${gearBadgeSVG()}
       </div>
       <div class="tok-info">
-        <div class="tok-name">${p.name}</div>
+        <div class="tok-name">${p.name}${verifiedBadgeHTML()}</div>
         <div class="tok-bal">${fmtAmt(amt, p.sym)}</div>
       </div>
       <div class="tok-val">
@@ -682,9 +690,9 @@ function renderList() {
     if (!pulling) return;
     if (e.touches[0].clientY - startY > 60 && !triggered) {
       triggered = true;
-      const ind = document.getElementById('ptr-indicator');
-      ind.classList.add('showing');
-      setTimeout(() => ind.classList.remove('showing'), 600);
+      const wrap = document.getElementById('ptr-spinner-wrap');
+      wrap.classList.add('active');
+      setTimeout(() => wrap.classList.remove('active'), 1500);
     }
   }, { passive: true });
   document.addEventListener('touchend', () => { pulling = false; });
@@ -737,6 +745,7 @@ async function openTokenDetail(id) {
   const pos = (p.chg24||0) >= 0;
   document.getElementById('td-logo-img').src = p.img;
   document.getElementById('td-tok-name').textContent = p.name;
+  document.getElementById('td-verified-badge').innerHTML = verifiedBadgeHTML(16);
   document.getElementById('td-people-count').textContent = Math.floor(Math.random()*40+2);
   document.getElementById('td-price').textContent = fmtUSDFull(p.usd);
   document.getElementById('td-chg-d').textContent = (pos?'+':'-')+'$'+Math.abs(p.chgAbs||0).toFixed(6);
