@@ -19,6 +19,36 @@ body {
   display:flex; flex-direction:column; overflow-x:hidden;
 }
 
+/* ── PULL TO REFRESH ── */
+#ptr-indicator {
+  display:flex; align-items:center; justify-content:center;
+  height:0; overflow:hidden; background:var(--bg);
+  transition:height 0.18s ease;
+}
+#ptr-indicator.showing { height:54px; }
+
+/* Apple-style spinner */
+.apple-spinner { width:26px; height:26px; position:relative; }
+.apple-spinner span {
+  position:absolute; width:2.8px; height:7.5px;
+  background:var(--sub); border-radius:2px;
+  left:calc(50% - 1.4px); top:1px;
+  transform-origin:50% 12px; opacity:0.15;
+}
+.apple-spinner span:nth-child(1)  { transform:rotate(0deg);   animation:apf 1.1s -1.008s linear infinite; }
+.apple-spinner span:nth-child(2)  { transform:rotate(30deg);  animation:apf 1.1s -0.917s linear infinite; }
+.apple-spinner span:nth-child(3)  { transform:rotate(60deg);  animation:apf 1.1s -0.825s linear infinite; }
+.apple-spinner span:nth-child(4)  { transform:rotate(90deg);  animation:apf 1.1s -0.733s linear infinite; }
+.apple-spinner span:nth-child(5)  { transform:rotate(120deg); animation:apf 1.1s -0.642s linear infinite; }
+.apple-spinner span:nth-child(6)  { transform:rotate(150deg); animation:apf 1.1s -0.550s linear infinite; }
+.apple-spinner span:nth-child(7)  { transform:rotate(180deg); animation:apf 1.1s -0.458s linear infinite; }
+.apple-spinner span:nth-child(8)  { transform:rotate(210deg); animation:apf 1.1s -0.367s linear infinite; }
+.apple-spinner span:nth-child(9)  { transform:rotate(240deg); animation:apf 1.1s -0.275s linear infinite; }
+.apple-spinner span:nth-child(10) { transform:rotate(270deg); animation:apf 1.1s -0.183s linear infinite; }
+.apple-spinner span:nth-child(11) { transform:rotate(300deg); animation:apf 1.1s -0.092s linear infinite; }
+.apple-spinner span:nth-child(12) { transform:rotate(330deg); animation:apf 1.1s  0.000s linear infinite; }
+@keyframes apf { 0% { opacity:1; } 100% { opacity:0.15; } }
+
 /* ── MAIN WALLET VIEW ── */
 #wallet-view { display:flex; flex-direction:column; flex:1; }
 #token-detail-view { display:none; flex-direction:column; min-height:100vh; background:var(--bg); }
@@ -65,11 +95,10 @@ body {
 .token-item:active { background:#252528; }
 .tok-logo { width:44px; height:44px; border-radius:50%; flex-shrink:0; position:relative; }
 .tok-logo img { width:44px; height:44px; border-radius:50%; object-fit:cover; display:block; }
-.chain-badge { position:absolute; bottom:-1px; right:-1px; width:18px; height:18px; border-radius:50%; border:2.5px solid var(--card); overflow:hidden; background:#627eea; display:flex; align-items:center; justify-content:center; }
-.chain-badge img { width:14px; height:14px; border-radius:50%; }
+/* Gear badge — no ETH badge anymore */
+.gear-badge { position:absolute; bottom:-2px; right:-2px; width:19px; height:19px; }
 .tok-info { flex:1; min-width:0; }
-.tok-name { font-size:15px; font-weight:600; display:flex; align-items:center; gap:4px; }
-.tok-name svg { width:13px; height:13px; flex-shrink:0; }
+.tok-name { font-size:15px; font-weight:600; }
 .tok-bal { font-size:13px; color:var(--sub); margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .tok-val { text-align:right; flex-shrink:0; }
 .tok-usd { font-size:15px; font-weight:600; }
@@ -99,9 +128,9 @@ body {
 .btn-cancel { flex:1; padding:14px; border-radius:16px; background:var(--card2); border:none; color:var(--sub); font-size:16px; font-weight:600; cursor:pointer; font-family:inherit; }
 .btn-apply { flex:1; padding:14px; border-radius:16px; background:var(--accent); border:none; color:#000; font-size:16px; font-weight:700; cursor:pointer; font-family:inherit; }
 
-/* ── TOKEN DETAIL PAGE (like Phantom app) ── */
+/* ── TOKEN DETAIL PAGE ── */
 .td-header {
-  display:flex; align-items:center; padding:54px 20px 16px; gap:0;
+  display:flex; align-items:center; padding:54px 20px 16px;
   position:relative;
 }
 .td-back {
@@ -115,9 +144,9 @@ body {
 .td-token-name { font-size:16px; font-weight:700; display:flex; align-items:center; gap:5px; }
 .td-online { width:8px; height:8px; border-radius:50%; background:var(--green); display:inline-block; }
 .td-people { font-size:11px; color:var(--sub); margin-top:2px; }
-.td-actions-right { display:flex; gap:8px; flex-shrink:0; }
-.td-icon-btn { width:36px; height:36px; border-radius:50%; background:var(--card); display:flex; align-items:center; justify-content:center; cursor:pointer; }
-.td-icon-btn svg { width:16px; height:16px; stroke:var(--sub); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+/* Only share button remains on the right */
+.td-share-btn { width:36px; height:36px; border-radius:50%; background:var(--card); display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; }
+.td-share-btn svg { width:16px; height:16px; stroke:var(--sub); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
 
 .td-price-section { padding:0 20px 6px; }
 .td-price { font-size:40px; font-weight:800; letter-spacing:-1.5px; }
@@ -125,34 +154,24 @@ body {
 
 .td-chart-wrap { padding:0 0 6px; position:relative; }
 canvas#tdChart { width:100%; height:180px; display:block; }
-.td-period-row { display:flex; gap:0; justify-content:center; padding:10px 20px 6px; background:transparent; }
+.td-period-row { display:flex; gap:0; justify-content:center; padding:10px 20px 6px; }
 .td-period-btn { flex:1; padding:7px 0; border-radius:20px; background:transparent; border:none; color:var(--sub); font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; text-align:center; }
-.td-period-btn.active { background:var(--card2); color:var(--text); border-radius:20px; }
+.td-period-btn.active { background:var(--card2); color:var(--text); }
 
-/* Chat join bar */
 .td-chat-bar { margin:10px 14px; background:var(--card); border-radius:16px; padding:12px 16px; display:flex; align-items:center; gap:12px; }
 .td-chat-avatar { width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,#6b63ff,#9b5de5); display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
 .td-chat-label { flex:1; font-size:13px; color:var(--sub); }
 .td-chat-join { background:var(--card2); border:none; color:var(--text); font-size:13px; font-weight:700; padding:8px 14px; border-radius:12px; cursor:pointer; font-family:inherit; }
 
-/* Lists associated */
 .td-section-label { font-size:14px; color:var(--sub); font-weight:600; padding:10px 20px 6px; }
 .td-list-tag { margin:0 14px; background:var(--card); border-radius:16px; padding:12px 16px; display:flex; align-items:center; gap:10px; cursor:pointer; }
 .td-list-tag-icon { width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,#00d18c,#00b4d8); display:flex; align-items:center; justify-content:center; font-size:16px; }
 .td-list-tag-name { font-size:14px; font-weight:700; }
 
-/* Info section */
-.td-info-section { margin:10px 14px; background:var(--card); border-radius:20px; overflow:hidden; }
-.td-info-title { font-size:15px; font-weight:700; padding:14px 16px 10px; }
-.td-info-row { display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-top:1px solid var(--border); }
-.td-info-label { font-size:13px; color:var(--sub); }
-.td-info-val { font-size:13px; font-weight:600; display:flex; align-items:center; gap:6px; }
-.td-copy-icon { width:16px; height:16px; cursor:pointer; opacity:0.6; }
-
-/* Buy button */
+/* Buy button — no info section above so it flows naturally */
 .td-buy-btn { margin:14px 14px 30px; width:calc(100% - 28px); padding:16px; border-radius:20px; background:var(--accent); border:none; color:#000; font-size:17px; font-weight:800; cursor:pointer; font-family:inherit; letter-spacing:-.3px; }
 
-/* Profile / name edit modal */
+/* Profile modal */
 .profile-avatar-big { width:72px; height:72px; border-radius:50%; background:linear-gradient(135deg,#ff6b6b,#ffd93d); display:flex; align-items:center; justify-content:center; font-size:36px; margin:0 auto 20px; cursor:pointer; position:relative; }
 .profile-avatar-big::after { content:'✏️'; position:absolute; bottom:-2px; right:-2px; font-size:18px; }
 </style>
@@ -163,6 +182,15 @@ canvas#tdChart { width:100%; height:180px; display:block; }
 <!--  MAIN WALLET VIEW                                  -->
 <!-- ══════════════════════════════════════════════════ -->
 <div id="wallet-view">
+
+<!-- Pull-to-refresh: purely visual, no reload -->
+<div id="ptr-indicator">
+  <div class="apple-spinner">
+    <span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span>
+  </div>
+</div>
 
 <div class="header">
   <div class="avatar" id="header-avatar" onclick="openModal('profile-modal')">🐱</div>
@@ -287,9 +315,11 @@ canvas#tdChart { width:100%; height:180px; display:block; }
 
 
 <!-- ══════════════════════════════════════════════════ -->
-<!--  TOKEN DETAIL PAGE (full screen, like Phantom)     -->
+<!--  TOKEN DETAIL PAGE                                 -->
 <!-- ══════════════════════════════════════════════════ -->
 <div id="token-detail-view">
+
+  <!-- Header: back | CENTERED logo+name | share only -->
   <div class="td-header">
     <div class="td-back" onclick="closeTokenDetail()">
       <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
@@ -302,14 +332,9 @@ canvas#tdChart { width:100%; height:180px; display:block; }
       </div>
       <div class="td-people"><span class="td-online"></span> <span id="td-people-count">—</span> personnes ici</div>
     </div>
-    <div class="td-actions-right">
-      <div class="td-icon-btn" onclick="closeTokenDetail()">
-        <svg viewBox="0 0 24 24"><circle cx="8" cy="3" r="1.5" fill="var(--sub)"/><circle cx="12" cy="3" r="1.5" fill="var(--sub)"/><circle cx="16" cy="3" r="1.5" fill="var(--sub)"/>
-        <path d="M5 9h14M5 15h14"/></svg>
-      </div>
-      <div class="td-icon-btn">
-        <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
-      </div>
+    <!-- Share button only (3-dots button removed) -->
+    <div class="td-share-btn">
+      <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
     </div>
   </div>
 
@@ -344,67 +369,14 @@ canvas#tdChart { width:100%; height:180px; display:block; }
 
   <!-- Associated lists -->
   <div class="td-section-label">Listes associées</div>
-  <div class="td-list-tag" id="td-list-tag">
+  <div class="td-list-tag">
     <div class="td-list-tag-icon">💊</div>
-    <div class="td-list-tag-name" id="td-list-name">pump.fun</div>
+    <div class="td-list-tag-name">pump.fun</div>
   </div>
 
-  <!-- Info table -->
-  <div class="td-section-label" style="margin-top:14px;">Informations</div>
-  <div class="td-info-section">
-    <div class="td-info-row">
-      <span class="td-info-label">Nom</span>
-      <span class="td-info-val" id="td-info-name">—</span>
-    </div>
-    <div class="td-info-row">
-      <span class="td-info-label">Symbole</span>
-      <span class="td-info-val" id="td-info-sym">—</span>
-    </div>
-    <div class="td-info-row">
-      <span class="td-info-label">Réseau</span>
-      <span class="td-info-val" id="td-info-network">—</span>
-    </div>
-    <div class="td-info-row">
-      <span class="td-info-label">Mint</span>
-      <span class="td-info-val" id="td-info-mint" style="font-family:monospace;font-size:12px;">—
-        <svg class="td-copy-icon" viewBox="0 0 24 24" fill="none" stroke="var(--sub)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" onclick="copyMint()"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-      </span>
-    </div>
-    <div class="td-info-row">
-      <span class="td-info-label">Capitalisation du marché</span>
-      <span class="td-info-val" id="td-info-mcap">—</span>
-    </div>
-    <div class="td-info-row">
-      <span class="td-info-label">Approvisionnement total</span>
-      <span class="td-info-val" id="td-info-supply">—</span>
-    </div>
-    <div class="td-info-row">
-      <span class="td-info-label">Approvisionnement circulaire</span>
-      <span class="td-info-val" id="td-info-circ">—</span>
-    </div>
-    <div class="td-info-row">
-      <span class="td-info-label">Détenteurs</span>
-      <span class="td-info-val" id="td-info-holders">—</span>
-    </div>
-    <div class="td-info-row">
-      <span class="td-info-label">Volume 24h</span>
-      <span class="td-info-val" id="td-info-vol">—</span>
-    </div>
-    <div class="td-info-row">
-      <span class="td-info-label">ATH</span>
-      <span class="td-info-val" id="td-info-ath">—</span>
-    </div>
-    <div class="td-info-row">
-      <span class="td-info-label">ATL</span>
-      <span class="td-info-val" id="td-info-atl">—</span>
-    </div>
-    <div class="td-info-row">
-      <span class="td-info-label">Rang CoinGecko</span>
-      <span class="td-info-val" id="td-info-rank">—</span>
-    </div>
-  </div>
-
+  <!-- Buy button — no info section, no scrolling needed -->
   <button class="td-buy-btn" onclick="closeTokenDetail()">Acheter</button>
+
 </div><!-- end token-detail-view -->
 
 
@@ -412,7 +384,6 @@ canvas#tdChart { width:100%; height:180px; display:block; }
 <!--  MODALS                                           -->
 <!-- ══════════════════════════════════════════════════ -->
 
-<!-- BUY / EDIT ASSETS MODAL (all tokens) -->
 <div class="modal-overlay" id="buy-modal">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -425,7 +396,6 @@ canvas#tdChart { width:100%; height:180px; display:block; }
   </div>
 </div>
 
-<!-- PROFILE EDIT MODAL -->
 <div class="modal-overlay" id="profile-modal">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -452,7 +422,6 @@ canvas#tdChart { width:100%; height:180px; display:block; }
   </div>
 </div>
 
-<!-- RECEIVE MODAL -->
 <div class="modal-overlay" id="receive-modal">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -483,7 +452,6 @@ canvas#tdChart { width:100%; height:180px; display:block; }
   </div>
 </div>
 
-<!-- SEND MODAL -->
 <div class="modal-overlay" id="send-modal">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -505,7 +473,6 @@ canvas#tdChart { width:100%; height:180px; display:block; }
   </div>
 </div>
 
-<!-- SWAP MODAL -->
 <div class="modal-overlay" id="swap-modal">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -537,7 +504,6 @@ canvas#tdChart { width:100%; height:180px; display:block; }
   </div>
 </div>
 
-<!-- PERPS MODAL -->
 <div class="modal-overlay" id="perps-modal">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -575,10 +541,17 @@ canvas#tdChart { width:100%; height:180px; display:block; }
 <!--  JAVASCRIPT                                        -->
 <!-- ══════════════════════════════════════════════════ -->
 <script>
-// ── CONSTANTS ─────────────────────────────────────────────────────────────────
-const ETH_BADGE = 'https://assets.coingecko.com/coins/images/279/small/ethereum.png';
+// ── GEAR BADGE SVG ────────────────────────────────────────────────────────────
+// Gear shape with checkmark, replaces the ETH badge completely
+function gearBadgeSVG() {
+  return `<svg class="gear-badge" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+    <path fill="#4a9eff" d="M17.14 10.94c.04-.3.06-.61.06-.94s-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.62l-1.92-3.32a.49.49 0 00-.6-.21l-2.39.96a6.97 6.97 0 00-1.62-.94l-.36-2.54A.48.48 0 0012 .5H8a.48.48 0 00-.48.41l-.36 2.54a7.3 7.3 0 00-1.62.94l-2.39-.96a.48.48 0 00-.6.21L.63 6.96a.47.47 0 00.12.62l2.03 1.58A7.5 7.5 0 002.71 10c0 .32.02.64.07.94L.75 12.52a.47.47 0 00-.12.62l1.92 3.32c.12.22.38.3.6.21l2.39-.96c.5.36 1.04.67 1.62.94l.36 2.54c.07.26.3.45.57.45h3.84a.48.48 0 00.48-.41l.36-2.54c.58-.27 1.12-.57 1.62-.94l2.39.96c.23.09.49 0 .6-.21l1.92-3.32a.47.47 0 00-.12-.62l-2.04-1.63z"/>
+    <circle fill="#3080e8" cx="10" cy="10" r="3.2"/>
+    <path d="M8.4 10l1.1 1.1 2.1-2.1" stroke="white" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>`;
+}
 
-// All token IDs we display
+// ── CONSTANTS ─────────────────────────────────────────────────────────────────
 const ALL_TOKEN_IDS = [
   'bitcoin','ethereum','tether','binancecoin','solana','ripple',
   'usd-coin','staked-ether','dogecoin','tron','cardano','avalanche-2',
@@ -588,57 +561,21 @@ const ALL_TOKEN_IDS = [
   'synthetix-network-token','shiryo-inu'
 ];
 
-// Network mapping (coingecko id -> display name)
-const NETWORK_MAP = {
-  'bitcoin':'Bitcoin','ethereum':'Ethereum','tether':'Ethereum',
-  'binancecoin':'BNB Smart Chain','solana':'Solana','ripple':'XRP Ledger',
-  'usd-coin':'Ethereum','staked-ether':'Ethereum','dogecoin':'Dogecoin',
-  'tron':'Tron','cardano':'Cardano','avalanche-2':'Avalanche',
-  'shiba-inu':'Ethereum','chainlink':'Ethereum','polkadot':'Polkadot',
-  'uniswap':'Ethereum','litecoin':'Litecoin','bitcoin-cash':'Bitcoin Cash',
-  'stellar':'Stellar','near':'NEAR','matic-network':'Polygon',
-  'aave':'Ethereum','maker':'Ethereum','the-graph':'Ethereum',
-  'curve-dao-token':'Ethereum','sushi':'Ethereum','1inch':'Ethereum',
-  'yearn-finance':'Ethereum','compound-governance-token':'Ethereum',
-  'synthetix-network-token':'Ethereum','shiryo-inu':'Ethereum'
-};
-
-// Fake mint addresses (short display)
-const MINT_MAP = {
-  'bitcoin':'1A1zP1…ecc8yE','ethereum':'0x0000…000000',
-  'tether':'0xdAC17…45f2eA6','binancecoin':'BNB…Chain',
-  'solana':'So111…1112','ripple':'rHb9C…rP4uhh',
-  'usd-coin':'0xA0b8…eB48','dogecoin':'D5m5f…rPnfqQ',
-  'shiba-inu':'0x95aD…1e0028','matic-network':'0x7D1A…17A3A8'
-};
-
 // ── STATE ─────────────────────────────────────────────────────────────────────
-let prices = {};            // coingecko data keyed by id
-let detailedInfo = {};      // full coin info from /coins/{id}
-let holdAmt = {};           // amounts held per token id (from localStorage)
+let prices = {};
+let holdAmt = {};
 let curTokId = null;
-let tdCurDays = '1';
 
-// ── LOCALSTORAGE HELPERS ──────────────────────────────────────────────────────
-function saveState() {
-  localStorage.setItem('ph_holdAmt', JSON.stringify(holdAmt));
-}
+// ── LOCALSTORAGE ──────────────────────────────────────────────────────────────
+function saveState() { localStorage.setItem('ph_holdAmt', JSON.stringify(holdAmt)); }
 function loadState() {
   try {
     const saved = localStorage.getItem('ph_holdAmt');
     if (saved) holdAmt = JSON.parse(saved);
-    else {
-      // Default: all zeros
-      ALL_TOKEN_IDS.forEach(id => holdAmt[id] = 0);
-    }
-  } catch(e) {
-    ALL_TOKEN_IDS.forEach(id => holdAmt[id] = 0);
-  }
-  // Ensure all token IDs have an entry
+    else ALL_TOKEN_IDS.forEach(id => holdAmt[id] = 0);
+  } catch(e) { ALL_TOKEN_IDS.forEach(id => holdAmt[id] = 0); }
   ALL_TOKEN_IDS.forEach(id => { if (holdAmt[id] === undefined) holdAmt[id] = 0; });
 }
-
-// Profile persistence
 function saveProfile() {
   const dn = document.getElementById('header-displayname').textContent;
   const un = document.getElementById('header-username').textContent;
@@ -654,7 +591,6 @@ function loadProfile() {
       document.getElementById('header-avatar').textContent = p.av;
       document.getElementById('profile-avatar-big').textContent = p.av;
     }
-    // Prefill inputs
     document.getElementById('inp-displayname').value = p.dn || '';
     document.getElementById('inp-username').value = p.un || '';
     document.getElementById('inp-avatar').value = p.av || '';
@@ -669,20 +605,12 @@ async function fetchPrices() {
     const data = await (await fetch(url)).json();
     data.forEach(c => {
       prices[c.id] = {
-        usd: c.current_price,
-        chg24: c.price_change_percentage_24h,
-        chgAbs: c.price_change_24h,
-        img: c.image,
-        name: c.name,
-        sym: c.symbol.toUpperCase(),
-        rank: c.market_cap_rank,
-        mcap: c.market_cap,
-        vol24: c.total_volume,
-        supply: c.total_supply,
-        circ: c.circulating_supply,
-        ath: c.ath,
-        atl: c.atl,
-        holders: null // will fetch from detail if needed
+        usd: c.current_price, chg24: c.price_change_percentage_24h,
+        chgAbs: c.price_change_24h, img: c.image, name: c.name,
+        sym: c.symbol.toUpperCase(), rank: c.market_cap_rank,
+        mcap: c.market_cap, vol24: c.total_volume,
+        supply: c.total_supply, circ: c.circulating_supply,
+        ath: c.ath, atl: c.atl
       };
     });
     renderAll();
@@ -716,16 +644,13 @@ function renderBalance() {
 function renderList() {
   const list = document.getElementById('token-list');
   list.innerHTML = '';
-  // First show tokens with non-zero balance, then rest
   const withBalance = ALL_TOKEN_IDS.filter(id => (holdAmt[id]||0) > 0);
   const without = ALL_TOKEN_IDS.filter(id => !(holdAmt[id]||0));
-  const order = [...withBalance, ...without];
-
-  order.forEach(id => {
+  [...withBalance, ...without].forEach(id => {
     const p = prices[id]; if (!p) return;
     const amt = holdAmt[id] || 0;
     const val = amt * p.usd;
-    const pos = (p.chg24||0)>=0;
+    const pos = (p.chg24||0) >= 0;
     const div = document.createElement('div');
     div.className = 'token-item';
     div.onclick = () => openTokenDetail(id);
@@ -733,13 +658,10 @@ function renderList() {
       <div class="tok-logo">
         <img src="${p.img}" alt="${p.name}" loading="lazy"
              onerror="this.outerHTML='<div style=width:44px;height:44px;border-radius:50%;background:#333;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:white>${p.sym[0]}</div>'">
-        <div class="chain-badge"><img src="${ETH_BADGE}" alt="" loading="lazy" onerror="this.style.display='none'"></div>
+        ${gearBadgeSVG()}
       </div>
       <div class="tok-info">
-        <div class="tok-name">
-          ${p.name}
-          <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="8" fill="#4a9eff"/><path d="M5 8l2 2 4-4" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </div>
+        <div class="tok-name">${p.name}</div>
         <div class="tok-bal">${fmtAmt(amt, p.sym)}</div>
       </div>
       <div class="tok-val">
@@ -750,12 +672,26 @@ function renderList() {
   });
 }
 
-// ── EDIT MODAL (ALL TOKENS) ──────────────────────────────────────────────────
-function openBuyModal() {
-  buildEditList();
-  openModal('buy-modal');
-}
+// ── PULL TO REFRESH (visual only — no reload) ─────────────────────────────────
+(function initPTR() {
+  let startY = 0, pulling = false, triggered = false;
+  document.addEventListener('touchstart', e => {
+    if (window.scrollY === 0) { startY = e.touches[0].clientY; pulling = true; triggered = false; }
+  }, { passive: true });
+  document.addEventListener('touchmove', e => {
+    if (!pulling) return;
+    if (e.touches[0].clientY - startY > 60 && !triggered) {
+      triggered = true;
+      const ind = document.getElementById('ptr-indicator');
+      ind.classList.add('showing');
+      setTimeout(() => ind.classList.remove('showing'), 600);
+    }
+  }, { passive: true });
+  document.addEventListener('touchend', () => { pulling = false; });
+})();
 
+// ── EDIT MODAL ────────────────────────────────────────────────────────────────
+function openBuyModal() { buildEditList(); openModal('buy-modal'); }
 function buildEditList() {
   const el = document.getElementById('edit-list');
   el.innerHTML = '';
@@ -774,28 +710,15 @@ function buildEditList() {
     el.appendChild(d);
   });
 }
-
 function applyChanges() {
   ALL_TOKEN_IDS.forEach(id => {
     const el = document.getElementById('inp-'+id);
     if (el) holdAmt[id] = parseFloat(el.value) || 0;
   });
-  saveState();
-  renderAll();
-  closeModal('buy-modal');
+  saveState(); renderAll(); closeModal('buy-modal');
 }
 
-// ── PROFILE EDIT ─────────────────────────────────────────────────────────────
-function openProfileModal() {
-  const dn = document.getElementById('header-displayname').textContent;
-  const un = document.getElementById('header-username').textContent;
-  const av = document.getElementById('header-avatar').textContent;
-  document.getElementById('inp-displayname').value = dn;
-  document.getElementById('inp-username').value = un;
-  document.getElementById('inp-avatar').value = av;
-  openModal('profile-modal');
-}
-
+// ── PROFILE ───────────────────────────────────────────────────────────────────
 function applyProfile() {
   const dn = document.getElementById('inp-displayname').value.trim() || 'batty';
   const un = document.getElementById('inp-username').value.trim() || '@battywatty';
@@ -804,217 +727,107 @@ function applyProfile() {
   document.getElementById('header-username').textContent = un.startsWith('@') ? un : '@'+un;
   document.getElementById('header-avatar').textContent = av;
   document.getElementById('profile-avatar-big').textContent = av;
-  saveProfile();
-  closeModal('profile-modal');
+  saveProfile(); closeModal('profile-modal');
 }
 
-// ── TOKEN DETAIL PAGE ─────────────────────────────────────────────────────────
+// ── TOKEN DETAIL ──────────────────────────────────────────────────────────────
 async function openTokenDetail(id) {
   curTokId = id;
   const p = prices[id]; if (!p) return;
   const pos = (p.chg24||0) >= 0;
-
-  // Update header
   document.getElementById('td-logo-img').src = p.img;
   document.getElementById('td-tok-name').textContent = p.name;
   document.getElementById('td-people-count').textContent = Math.floor(Math.random()*40+2);
-
-  // Price
   document.getElementById('td-price').textContent = fmtUSDFull(p.usd);
   document.getElementById('td-chg-d').textContent = (pos?'+':'-')+'$'+Math.abs(p.chgAbs||0).toFixed(6);
   document.getElementById('td-chg-d').className = 'chg-dollar '+(pos?'pos':'neg');
   document.getElementById('td-chg-p').textContent = (pos?'+':'')+(p.chg24||0).toFixed(2)+'%';
   document.getElementById('td-chg-p').className = 'chg-pct '+(pos?'pos-pill':'neg-pill');
-
-  // Info table
-  document.getElementById('td-info-name').textContent = p.name;
-  document.getElementById('td-info-sym').textContent = p.sym;
-  document.getElementById('td-info-network').textContent = NETWORK_MAP[id] || 'Ethereum';
-  document.getElementById('td-info-mint').innerHTML = (MINT_MAP[id]||id.substring(0,6)+'…'+id.slice(-4))+
-    ` <svg class="td-copy-icon" viewBox="0 0 24 24" fill="none" stroke="var(--sub)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" onclick="copyMint()"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>`;
-  document.getElementById('td-info-mcap').textContent = p.mcap ? fmtLargeUSD(p.mcap) : '—';
-  document.getElementById('td-info-supply').textContent = p.supply ? fmtLargeNum(p.supply) : '—';
-  document.getElementById('td-info-circ').textContent = p.circ ? fmtLargeNum(p.circ) : '—';
-  document.getElementById('td-info-vol').textContent = p.vol24 ? fmtLargeUSD(p.vol24) : '—';
-  document.getElementById('td-info-ath').textContent = p.ath ? fmtUSDFull(p.ath) : '—';
-  document.getElementById('td-info-atl').textContent = p.atl ? fmtUSDFull(p.atl) : '—';
-  document.getElementById('td-info-rank').textContent = p.rank ? '#'+p.rank : '—';
-  document.getElementById('td-info-holders').textContent = '—'; // Will update from API
-
-  // Chat count
   document.getElementById('td-chat-count').textContent = Math.floor(Math.random()*5+1)+' dans le chat…';
-
-  // Show detail view, hide wallet
   document.getElementById('wallet-view').style.display = 'none';
   document.getElementById('token-detail-view').classList.add('active');
   document.body.style.overflow = 'auto';
-
-  // Reset period
   document.querySelectorAll('.td-period-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.td-period-btn')[1].classList.add('active');
-  tdCurDays = '1';
-
-  // Load chart
   tdFetchChart(id, '1');
-
-  // Fetch detailed info (holders, etc.)
-  fetchTokenDetail(id);
 }
-
-async function fetchTokenDetail(id) {
-  try {
-    const url = `https://api.coingecko.com/api/v3/coins/${id}?localization=false&tickers=false&market_data=true&community_data=true&developer_data=false&sparkline=false`;
-    const data = await (await fetch(url)).json();
-    // Holders (community_data has twitter followers as proxy; onchain holders rarely available via free API)
-    if (data.market_data) {
-      const md = data.market_data;
-      if (md.total_supply) document.getElementById('td-info-supply').textContent = fmtLargeNum(md.total_supply);
-      if (md.circulating_supply) document.getElementById('td-info-circ').textContent = fmtLargeNum(md.circulating_supply);
-      if (md.market_cap?.usd) document.getElementById('td-info-mcap').textContent = fmtLargeUSD(md.market_cap.usd);
-      if (md.ath?.usd) document.getElementById('td-info-ath').textContent = fmtUSDFull(md.ath.usd);
-      if (md.atl?.usd) document.getElementById('td-info-atl').textContent = fmtUSDFull(md.atl.usd);
-    }
-    if (data.community_data?.twitter_followers) {
-      // Use public_interest_stats or community as proxy for "holders" visibility
-    }
-    if (data.market_cap_rank) document.getElementById('td-info-rank').textContent = '#' + data.market_cap_rank;
-  } catch(e) {}
-}
-
 function closeTokenDetail() {
   document.getElementById('token-detail-view').classList.remove('active');
   document.getElementById('wallet-view').style.display = 'flex';
 }
 
-// ── CHART (TOKEN DETAIL) ──────────────────────────────────────────────────────
+// ── CHART ─────────────────────────────────────────────────────────────────────
 async function tdFetchChart(id, days) {
   const canvas = document.getElementById('tdChart');
   const ctx = canvas.getContext('2d');
   const w = canvas.offsetWidth || 360, h = 180;
-  canvas.width = w * devicePixelRatio;
-  canvas.height = h * devicePixelRatio;
-  canvas.style.width = w + 'px';
-  canvas.style.height = h + 'px';
+  canvas.width = w * devicePixelRatio; canvas.height = h * devicePixelRatio;
+  canvas.style.width = w+'px'; canvas.style.height = h+'px';
   ctx.scale(devicePixelRatio, devicePixelRatio);
   ctx.clearRect(0,0,w,h);
-  ctx.fillStyle = '#555'; ctx.font = '13px sans-serif'; ctx.textAlign = 'center';
-  ctx.fillText('Chargement…', w/2, h/2);
-
+  ctx.fillStyle='#555'; ctx.font='13px sans-serif'; ctx.textAlign='center';
+  ctx.fillText('Chargement…',w/2,h/2);
   try {
-    const url = `https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=usd&days=${days}`;
-    const d = await (await fetch(url)).json();
-    const pts = (d.prices||[]).map(p => p[1]);
-    if (!pts.length) { ctx.fillText('Aucune donnée', w/2, h/2); return; }
-    const pos = pts[pts.length-1] >= pts[0];
-    drawChartLine(ctx, pts, w, h, pos);
-  } catch(e) {
-    ctx.clearRect(0,0,w,h);
-    ctx.fillStyle = '#555'; ctx.fillText('Erreur chargement', w/2, h/2);
-  }
+    const d = await (await fetch(`https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=usd&days=${days}`)).json();
+    const pts = (d.prices||[]).map(p=>p[1]);
+    if (!pts.length) { ctx.fillText('Aucune donnée',w/2,h/2); return; }
+    drawChartLine(ctx, pts, w, h, pts[pts.length-1]>=pts[0]);
+  } catch(e) { ctx.clearRect(0,0,w,h); ctx.fillStyle='#555'; ctx.fillText('Erreur',w/2,h/2); }
 }
-
 function drawChartLine(ctx, data, w, h, pos) {
   ctx.clearRect(0,0,w,h);
-  const color = pos ? '#30d158' : '#ff453a';
-  const pl=0,pr=0,pt=14,pb=10;
-  const cw=w-pl-pr, ch=h-pt-pb;
-  const min=Math.min(...data), max=Math.max(...data), rng=max-min||1;
-  const px = i => pl+(i/(data.length-1))*cw;
-  const py = v => pt+ch-((v-min)/rng)*ch;
-  const grad = ctx.createLinearGradient(0,pt,0,h-pb);
-  grad.addColorStop(0, color+'55');
-  grad.addColorStop(1, color+'00');
+  const color = pos?'#30d158':'#ff453a';
+  const pt=14,pb=10,cw=w,ch=h-pt-pb;
+  const min=Math.min(...data),max=Math.max(...data),rng=max-min||1;
+  const px=i=>(i/(data.length-1))*cw, py=v=>pt+ch-((v-min)/rng)*ch;
+  const grad=ctx.createLinearGradient(0,pt,0,h-pb);
+  grad.addColorStop(0,color+'55'); grad.addColorStop(1,color+'00');
   ctx.beginPath();
-  data.forEach((v,i) => i===0 ? ctx.moveTo(px(i),py(v)) : ctx.lineTo(px(i),py(v)));
-  ctx.lineTo(px(data.length-1), h-pb);
-  ctx.lineTo(px(0), h-pb);
-  ctx.closePath();
-  ctx.fillStyle = grad; ctx.fill();
+  data.forEach((v,i)=>i===0?ctx.moveTo(px(i),py(v)):ctx.lineTo(px(i),py(v)));
+  ctx.lineTo(px(data.length-1),h-pb); ctx.lineTo(0,h-pb); ctx.closePath();
+  ctx.fillStyle=grad; ctx.fill();
   ctx.beginPath();
-  data.forEach((v,i) => i===0 ? ctx.moveTo(px(i),py(v)) : ctx.lineTo(px(i),py(v)));
-  ctx.strokeStyle = color; ctx.lineWidth = 2.2; ctx.lineJoin = 'round'; ctx.stroke();
-  const last = data[data.length-1];
-  ctx.beginPath(); ctx.arc(px(data.length-1), py(last), 5, 0, Math.PI*2);
-  ctx.fillStyle = color; ctx.fill();
-  ctx.beginPath(); ctx.arc(px(data.length-1), py(last), 5, 0, Math.PI*2);
-  ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+  data.forEach((v,i)=>i===0?ctx.moveTo(px(i),py(v)):ctx.lineTo(px(i),py(v)));
+  ctx.strokeStyle=color; ctx.lineWidth=2.2; ctx.lineJoin='round'; ctx.stroke();
+  const last=data[data.length-1];
+  ctx.beginPath(); ctx.arc(px(data.length-1),py(last),5,0,Math.PI*2);
+  ctx.fillStyle=color; ctx.fill();
+  ctx.beginPath(); ctx.arc(px(data.length-1),py(last),5,0,Math.PI*2);
+  ctx.strokeStyle='#fff'; ctx.lineWidth=1.5; ctx.stroke();
 }
-
 function tdSetPeriod(days, btn) {
-  tdCurDays = days;
-  document.querySelectorAll('.td-period-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.td-period-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   if (curTokId) tdFetchChart(curTokId, days);
 }
 
-function copyMint() {
-  navigator.clipboard?.writeText(document.getElementById('td-info-mint').textContent?.split('\n')[0]?.trim() || '');
-}
-
 // ── MODAL HELPERS ─────────────────────────────────────────────────────────────
 function openModal(id) {
-  if (id === 'profile-modal') {
-    const dn = document.getElementById('header-displayname').textContent;
-    const un = document.getElementById('header-username').textContent;
-    const av = document.getElementById('header-avatar').textContent;
-    document.getElementById('inp-displayname').value = dn;
-    document.getElementById('inp-username').value = un;
-    document.getElementById('inp-avatar').value = av;
-    document.getElementById('profile-avatar-big').textContent = av;
+  if (id==='profile-modal') {
+    const dn=document.getElementById('header-displayname').textContent;
+    const un=document.getElementById('header-username').textContent;
+    const av=document.getElementById('header-avatar').textContent;
+    document.getElementById('inp-displayname').value=dn;
+    document.getElementById('inp-username').value=un;
+    document.getElementById('inp-avatar').value=av;
+    document.getElementById('profile-avatar-big').textContent=av;
   }
   document.getElementById(id).classList.add('open');
-  document.body.style.overflow = 'hidden';
+  document.body.style.overflow='hidden';
 }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); document.body.style.overflow = ''; }
-document.querySelectorAll('.modal-overlay').forEach(o => {
-  o.addEventListener('click', e => { if(e.target===o) closeModal(o.id); });
+function closeModal(id) { document.getElementById(id).classList.remove('open'); document.body.style.overflow=''; }
+document.querySelectorAll('.modal-overlay').forEach(o=>{
+  o.addEventListener('click',e=>{ if(e.target===o) closeModal(o.id); });
 });
-
 function setNav(el) {
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   el.classList.add('active');
 }
 
 // ── FORMAT HELPERS ────────────────────────────────────────────────────────────
-function fmtUSD(v) {
-  if (v===0) return '$0.00';
-  if (v>=1e6) return '$'+(v/1e6).toFixed(2)+'M';
-  if (v>=1e3) return '$'+v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-  if (v<0.0001) return '<$0.01';
-  return '$'+v.toFixed(v<1?4:2);
-}
-function fmtUSDFull(v) {
-  if (!v) return '$—';
-  if (v >= 1000) return '$'+v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-  if (v >= 1) return '$'+v.toFixed(2);
-  if (v >= 0.01) return '$'+v.toFixed(4);
-  if (v >= 0.000001) return '$'+v.toFixed(8);
-  return '$'+v.toExponential(4);
-}
-function fmtLargeUSD(v) {
-  if (!v) return '—';
-  if (v>=1e12) return '$'+(v/1e12).toFixed(2)+'T';
-  if (v>=1e9) return '$'+(v/1e9).toFixed(2)+'B';
-  if (v>=1e6) return '$'+(v/1e6).toFixed(2)+'M';
-  if (v>=1e3) return '$'+(v/1e3).toFixed(2)+'K';
-  return '$'+v.toFixed(2);
-}
-function fmtLargeNum(v) {
-  if (!v) return '—';
-  if (v>=1e12) return (v/1e12).toFixed(2)+'T';
-  if (v>=1e9) return (v/1e9).toFixed(2)+'B';
-  if (v>=1e6) return (v/1e6).toFixed(2)+'M';
-  if (v>=1e3) return (v/1e3).toFixed(2)+'K';
-  return v.toLocaleString('en-US');
-}
-function fmtAmt(a, sym) {
-  if (!a) return '0 '+sym;
-  if (a>=1e12) return (a/1e12).toFixed(2)+'T '+sym;
-  if (a>=1e9)  return (a/1e9).toFixed(2)+'B '+sym;
-  if (a>=1e6)  return (a/1e6).toFixed(2)+'M '+sym;
-  if (a>=1e3)  return (a/1e3).toFixed(2)+'k '+sym;
-  return a.toLocaleString('en-US',{maximumFractionDigits:6})+' '+sym;
-}
+function fmtUSD(v){if(v===0)return'$0.00';if(v>=1e6)return'$'+(v/1e6).toFixed(2)+'M';if(v>=1e3)return'$'+v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});if(v<0.0001)return'<$0.01';return'$'+v.toFixed(v<1?4:2);}
+function fmtUSDFull(v){if(!v)return'$—';if(v>=1000)return'$'+v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});if(v>=1)return'$'+v.toFixed(2);if(v>=0.01)return'$'+v.toFixed(4);if(v>=0.000001)return'$'+v.toFixed(8);return'$'+v.toExponential(4);}
+function fmtAmt(a,sym){if(!a)return'0 '+sym;if(a>=1e9)return(a/1e9).toFixed(2)+'B '+sym;if(a>=1e6)return(a/1e6).toFixed(2)+'M '+sym;if(a>=1e3)return(a/1e3).toFixed(2)+'k '+sym;return a.toLocaleString('en-US',{maximumFractionDigits:6})+' '+sym;}
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
 loadState();
